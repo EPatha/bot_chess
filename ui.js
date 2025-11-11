@@ -67,7 +67,14 @@ function renderBoard() {
 function appendSquare(rankIndex, fileIndex, pieceChar) {
   const sq = document.createElement('div');
   sq.className = 'square ' + (((rankIndex + fileIndex) % 2 === 0) ? 'light' : 'dark');
-  if (pieceChar) sq.textContent = pieceMap[pieceChar] || '?';
+  if (pieceChar) {
+    // create piece element so we can style white/black pieces differently
+    const sp = document.createElement('span');
+    const isWhite = (pieceChar === pieceChar.toUpperCase());
+    sp.className = 'piece ' + (isWhite ? 'white' : 'black');
+    sp.textContent = pieceMap[pieceChar] || '?';
+    sq.appendChild(sp);
+  }
   boardEl.appendChild(sq);
 }
 
