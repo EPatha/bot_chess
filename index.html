@@ -37,10 +37,23 @@
     .square .coord { position:absolute; font-size:10px; color: rgba(0,0,0,0.65); }
     .square .coord.file { right:4px; bottom:2px; }
     .square .coord.rank { left:4px; top:2px; }
-  /* piece styling: give white pieces a white circular background so they're visible on light squares */
-  .piece { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; }
-  .piece.white { background: #fff; color: #111; box-shadow: 0 1px 0 rgba(0,0,0,0.08) inset; border: 1px solid rgba(0,0,0,0.08); font-size:22px; }
-  .piece.black { background: transparent; color: #111; font-size:26px; }
+    /* piece styling: render pieces without a circular background.
+       For white pieces we use white fill for the glyph and add a dark outline
+       using multiple text-shadow layers so the white stays inside the piece shape. */
+    .piece { display:inline-flex; align-items:center; justify-content:center; line-height:1; padding:0 2px; }
+    .piece.white {
+      background: transparent;
+      border: none;
+      color: #ffffff; /* white fill */
+      font-size:26px;
+      /* outline for white pieces: 4-directional shadow to approximate a stroke */
+      text-shadow:
+        -1px -1px 0 #111,
+        1px -1px 0 #111,
+        -1px 1px 0 #111,
+        1px 1px 0 #111;
+    }
+    .piece.black { background: transparent; color: #111; font-size:26px; }
     #controls { margin-top: 12px; display:flex; gap:8px; align-items:center; }
     button { padding:8px 12px; }
     #log { margin-top:12px; max-width:700px; white-space:pre-wrap; font-family:monospace; }
