@@ -6,6 +6,8 @@ const logEl = document.getElementById('log');
 const btnNext = document.getElementById('btn-next');
 const btnReset = document.getElementById('btn-reset');
 const autoChk = document.getElementById('auto');
+const ranksEl = document.getElementById('ranks');
+const filesEl = document.getElementById('files');
 
 const EPstyle = { aggression: 0.7 }; // gaya contoh: >0.6 prefer capture
 
@@ -22,6 +24,27 @@ function renderBoard() {
   boardEl.innerHTML = '';
   const fen = game.fen().split(' ')[0];
   fenEl.textContent = game.fen();
+  // render ranks (8..1) and files (a..h)
+  if (ranksEl) {
+    ranksEl.innerHTML = '';
+    for (let r = 8; r >= 1; r--) {
+      const d = document.createElement('div');
+      d.className = 'rank';
+      d.textContent = r;
+      ranksEl.appendChild(d);
+    }
+  }
+  if (filesEl) {
+    filesEl.innerHTML = '';
+    const files = ['a','b','c','d','e','f','g','h'];
+    for (const f of files) {
+      const s = document.createElement('div');
+      s.style.width = '48px';
+      s.style.textAlign = 'center';
+      s.textContent = f;
+      filesEl.appendChild(s);
+    }
+  }
   const rows = fen.split('/'); // 8 ranks
   for (let r = 0; r < 8; r++) {
     const rank = rows[r];
