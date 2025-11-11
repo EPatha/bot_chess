@@ -91,15 +91,35 @@ function makeBestMove() {
   // prefer captures if aggression > 0.6
   const captures = moves.filter(m => m.includes('x'));
   let bestMove;
-  if (EPstyle.aggression > 0.6 && captures.length > 0) {
-    bestMove = captures[Math.floor(Math.random() * captures.length)];
-  } else {
-    bestMove = moves[Math.floor(Math.random() * moves.length)];
-  }
-  game.move(bestMove);
-  renderBoard();
-  log('Played: ' + bestMove + '  |  SAN list length: ' + moves.length);
-  return true;
+  // call local Stockfish bridge (runs native engine) — expects stockfish_server.py on port 5000
+  const endpoint = 'http://127.0.0.1:5000/bestmove?fen=' + encodeURIComponent(game.fen()) + '&depth=12';
+  fetch(endpoint)
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.bestmove) {
+        const mv = data.bestmove;
+        game.move({ from: mv.slice(0,2), to: mv.slice(2,4), promotion: 'q' });
+        renderBoard();
+        log('Stockfish: ' + mv);
+      } else {
+        // fallback random
+        const moves = game.moves();
+        if (moves.length > 0) {
+          const mv = moves[Math.floor(Math.random() * moves.length)];
+          game.move(mv);
+          renderBoard();
+        }
+      }
+    })
+    .catch(err => {
+      console.warn('Engine request failed:', err);
+      const moves = game.moves();
+      if (moves.length > 0) {
+        const mv = moves[Math.floor(Math.random() * moves.length)];
+        game.move(mv);
+        renderBoard();
+      }
+    });
 }
 
 btnNext.addEventListener('click', () => {
