@@ -27,6 +27,28 @@
     }
     #board .message { padding: 12px; font-weight: 600; }
   </style>
+  <script>
+    // error reporting helper: tampilkan error di halaman supaya user tidak hanya melihat kotak kosong
+    function reportErrorToPage(msg) {
+      try {
+        console.error(msg);
+        const boardEl = document.getElementById('board');
+        const safe = String(msg).replace(/</g, '&lt;').replace(/\n/g,'<br>');
+        if (boardEl) boardEl.innerHTML = '<div class="message" style="color:#900;background:#fff;padding:12px;">' + safe + '</div>';
+        else document.body.insertAdjacentHTML('afterbegin','<div class="message" style="color:#900;background:#fff;padding:12px;">'+safe+'</div>');
+      } catch (e) {
+        console.error('Failed to render error to page', e);
+      }
+    }
+
+    window.addEventListener('error', function (e) {
+      reportErrorToPage('Error: ' + (e && e.message ? e.message : e));
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      const reason = e && e.reason ? (e.reason.message || e.reason) : e;
+      reportErrorToPage('Unhandled promise rejection: ' + reason);
+    });
+  </script>
 </head>
 <body>
   <div id="board"><div class="message">Memuat papan...</div></div>
