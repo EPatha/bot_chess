@@ -44,14 +44,18 @@
     .piece.white {
       background: transparent;
       border: none;
-      color: #ffffff; /* white fill */
+      color: #111; /* glyph fill dark so white outline is visible */
       font-size:26px;
-      /* outline for white pieces: 4-directional shadow to approximate a stroke */
+      /* use white outline (stroke) around the glyph */
       text-shadow:
-        -1px -1px 0 #111,
-        1px -1px 0 #111,
-        -1px 1px 0 #111,
-        1px 1px 0 #111;
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff,
+        -2px 0 0 #fff,
+        2px 0 0 #fff,
+        0 -2px 0 #fff,
+        0 2px 0 #fff;
     }
     .piece.black { background: transparent; color: #111; font-size:26px; }
     #controls { margin-top: 12px; display:flex; gap:8px; align-items:center; }
