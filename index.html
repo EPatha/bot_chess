@@ -129,8 +129,9 @@
         if (msg) msg.remove();
       } catch (err) {
         console.error('Init error:', err);
-        const boardEl = document.getElementById('board');
-        if (boardEl) boardEl.innerHTML = '<div class="message">Error saat inisialisasi: see console</div>';
+        // tampilkan error lengkap di halaman agar mudah didiagnosis
+        const text = (err && err.stack) ? err.stack : (err && err.message) ? err.message : String(err);
+        reportErrorToPage('Init error:\n' + text);
       }
     });
   </script>
