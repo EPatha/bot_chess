@@ -1,6 +1,5 @@
-import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0/esm/chess.mjs';
-
-// Simple UI glue to run a tiny bot and render board as Unicode pieces
+// ui.js: Simple UI glue to run a tiny bot and render board as Unicode pieces
+// Uses the global `Chess` provided by the UMD build (chess.min.js). Do not import ESM here.
 const boardEl = document.getElementById('board');
 const fenEl = document.getElementById('fen');
 const logEl = document.getElementById('log');
