@@ -12,14 +12,24 @@
       height: 100vh;
       background: #f7f7f7; /* ubah ke terang supaya papan terlihat jelas */
       color: #111;
+      margin: 0;
     }
     #board {
       width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg,#f0d9b5 0 50%, #b58863 50% 100%); /* fallback background */
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
     }
+    #board .message { padding: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
-  <div id="board"></div>
+  <div id="board"><div class="message">Memuat papan...</div></div>
 
   <!-- Script logic chess -->
   <!-- chessboard.js depends on jQuery: pastikan jQuery dimuat sebelum chessboard -->
@@ -27,68 +37,80 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
   <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
   <script>
-    const game = new Chess();
-    // init chessboardjs (expects jQuery to be available)
-    const board = Chessboard('board', {
-      draggable: true,
-      position: 'start',
-      onDrop: (source, target) => {
-        const move = game.move({ from: source, to: target, promotion: 'q' });
-        if (move === null) return 'snapback';
-        setTimeout(makeEPMove, 500);
-      }
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const game = new Chess();
+        // init chessboardjs (expects jQuery to be available)
+        const board = Chessboard('board', {
+          draggable: true,
+          position: 'start',
+          onDrop: (source, target) => {
+            const move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) return 'snapback';
+            setTimeout(makeEPMove, 500);
+          }
+        });
 
-    let stockfish = null;
-    let dna = {}; // data opening kamu
+        let stockfish = null;
+        let dna = {}; // data opening kamu
 
-    // coba buat worker stockfish, tapi jangan crash kalau tidak ada file
-    try {
-      stockfish = new Worker('stockfish.js');
-    } catch (e) {
-      console.warn('Stockfish worker tidak tersedia:', e);
-      stockfish = null;
-    }
+        // coba buat worker stockfish, tapi jangan crash kalau tidak ada file
+        try {
+          stockfish = new Worker('stockfish.js');
+        } catch (e) {
+          console.warn('Stockfish worker tidak tersedia:', e);
+          stockfish = null;
+        }
 
-    fetch('ep_opening.json')
-      .then(r => r.json())
-      .then(d => { dna = d; console.log('ep_opening.json loaded, keys:', Object.keys(d).length); })
-      .catch(e => { console.warn('Gagal load ep_opening.json:', e); });
+        fetch('ep_opening.json')
+          .then(r => r.json())
+          .then(d => { dna = d; console.log('ep_opening.json loaded, keys:', Object.keys(d).length); })
+          .catch(e => { console.warn('Gagal load ep_opening.json:', e); });
 
-    function makeEPMove() {
-      const fen = game.fen();
-      const possibleMoves = dna[fen];
-      
-      if (possibleMoves) {
-        // langkah dari DNA kamu
-        const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: 'q' });
-        board.position(game.fen());
-      } else {
-        // fallback ke Stockfish kalau ada, kalau tidak ada ambil random legal move
-        if (stockfish) {
-          stockfish.postMessage(`position fen ${fen}`);
-          stockfish.postMessage("go depth 10");
-        } else {
-          // simple fallback: ambil random legal move
-          const moves = game.moves();
-          if (moves.length > 0) {
-            const mv = moves[Math.floor(Math.random() * moves.length)];
-            game.move(mv);
+        function makeEPMove() {
+          const fen = game.fen();
+          const possibleMoves = dna[fen];
+          
+          if (possibleMoves) {
+            // langkah dari DNA kamu
+            const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: 'q' });
             board.position(game.fen());
+          } else {
+            // fallback ke Stockfish kalau ada, kalau tidak ada ambil random legal move
+            if (stockfish) {
+              stockfish.postMessage(`position fen ${fen}`);
+              stockfish.postMessage("go depth 10");
+            } else {
+              // simple fallback: ambil random legal move
+              const moves = game.moves();
+              if (moves.length > 0) {
+                const mv = moves[Math.floor(Math.random() * moves.length)];
+                game.move(mv);
+                board.position(game.fen());
+              }
+            }
           }
         }
-      }
-    }
-    if (stockfish) {
-      stockfish.onmessage = e => {
-        if (typeof e.data === 'string' && e.data.startsWith('bestmove')) {
-          const move = e.data.split(' ')[1];
-          game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: 'q' });
-          board.position(game.fen());
+        if (stockfish) {
+          stockfish.onmessage = e => {
+            if (typeof e.data === 'string' && e.data.startsWith('bestmove')) {
+              const move = e.data.split(' ')[1];
+              game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: 'q' });
+              board.position(game.fen());
+            }
+          };
         }
-      };
-    }
+
+        // remove fallback message after successful init
+        const msg = document.querySelector('#board .message');
+        if (msg) msg.remove();
+      } catch (err) {
+        console.error('Init error:', err);
+        const boardEl = document.getElementById('board');
+        if (boardEl) boardEl.innerHTML = '<div class="message">Error saat inisialisasi: see console</div>';
+      }
+    });
   </script>
 </body>
 </html>
